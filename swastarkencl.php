@@ -118,7 +118,7 @@ class Swastarkencl extends CarrierModule
             && $this->registerHook('actionCartSave')
             && $this->registerHook('actionBeforeCartUpdateQty')
             && $this->registerHook('actionCartUpdateQuantityBefore')
-            && $this->registerHook('actionBuildMailLayoutVariables')
+            && $this->registerHook('actionListMailThemes')
         );
     }
 
@@ -1732,19 +1732,36 @@ class Swastarkencl extends CarrierModule
         $this->hookActionCartUpdateQuantityBefore();
     }
 
-    public function hookActionBuildMailLayoutVariables(array $hookParams)
+    /**
+     * @param array $hookParams
+     */
+    public function hookActionListMailThemes(array $hookParams)
     {
-        if (!isset($hookParams['mailLayout'])) {
+        if (!isset($hookParams['mailThemes'])) {
             return;
         }
 
-        /** @var LayoutInterface $mailLayout */
-        $mailLayout = $hookParams['mailLayout'];
-        if ($mailLayout->getModuleName() != $this->name || $mailLayout->getName() != 'preparation') {
+        /** @var ThemeCollectionInterface $themes */
+        $themes = $hookParams['mailThemes'];
+        $theme = $themes->getByName('modern');
+        if (!$theme) {
             return;
         }
 
-        $hookParams['mailLayoutVariables']['customMessage'] = 'My custom message';
+        // First parameter is the layout name, second one is the module name (empty value matches the core layouts)
+        $orderConfLayout = $theme->getLayouts()->getLayout('preparation', '');
+        if (null === $orderConfLayout) {
+            return;
+        }
+
+        //The layout collection extends from ArrayCollection so it has more feature than it seems..
+        //It allows to REPLACE the existing layout easily
+        $orderIndex = $theme->getLayouts()->indexOf($orderConfLayout);
+        $theme->getLayouts()->offsetSet($orderIndex, new Layout(
+            $orderConfLayout->getName(),
+            __DIR__ . '/mails/layouts/preparation.html.twig',
+            ''
+        ));
     }
 
     public function getOrderShippingCost($params, $shipping_cost)
