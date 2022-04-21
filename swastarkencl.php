@@ -1,4 +1,5 @@
 <?php
+
 /**
  *  NOTICE OF LICENSE
  *
@@ -102,8 +103,7 @@ class Swastarkencl extends CarrierModule
 
         $this->configureCountry();
 
-        return (
-            parent::install()
+        return (parent::install()
             && $this->registerHook('displayTop')
             && $this->registerHook('header')
             && $this->registerHook('displayHeader')
@@ -118,6 +118,7 @@ class Swastarkencl extends CarrierModule
             && $this->registerHook('actionCartSave')
             && $this->registerHook('actionBeforeCartUpdateQty')
             && $this->registerHook('actionCartUpdateQuantityBefore')
+            && $this->registerHook('actionGetMailLayoutTransformations')
         );
     }
 
@@ -220,14 +221,15 @@ class Swastarkencl extends CarrierModule
         return parent::uninstall();
     }
 
-    public function addRutVerificationDigit($rut) {
+    public function addRutVerificationDigit($rut)
+    {
         $r = (int)$rut;
-        $s=1;
-        for ($m=0;$r!=0;$r/=10) {
-            $s=($s+$r%10*(9-$m++%6))%11;
+        $s = 1;
+        for ($m = 0; $r != 0; $r /= 10) {
+            $s = ($s + $r % 10 * (9 - $m++ % 6)) % 11;
         };
 
-        return $rut . '-' . chr($s?$s+47:75);
+        return $rut . '-' . chr($s ? $s + 47 : 75);
     }
 
     public function getContent()
@@ -334,7 +336,7 @@ class Swastarkencl extends CarrierModule
         }
 
         $this->configTemplate .= $this->displayConfirmation($this->l('Settings updated'));
-        
+
         return true;
     }
 
@@ -381,7 +383,8 @@ class Swastarkencl extends CarrierModule
         if (!Validate::isInt(Tools::getValue('SWASTARKENCL_ORDER_STATE'))) {
             $this->_errors[] = $this->l('Orden state is not valid');
         }
-        if (!empty(Tools::getValue('SWASTARKENCL_CLIENT_RUT'))
+        if (
+            !empty(Tools::getValue('SWASTARKENCL_CLIENT_RUT'))
             && !preg_match("/^\d{8}\-{1}[\w|\d]{1}$/", Tools::getValue('SWASTARKENCL_CLIENT_RUT'))
         ) {
             $this->_errors[] = $this->l('The client rut is not valid');
@@ -609,15 +612,15 @@ class Swastarkencl extends CarrierModule
         }
         return true;
     }
-    
+
     private function setCarrierGroups($carriers)
     {
-        $groupsIds =[];
+        $groupsIds = [];
         $groups = Group::getGroups($this->context->language->id);
         foreach ($groups as $group) {
             $groupsIds[] = $group['id_group'];
         }
-        
+
         foreach ($carriers as $carrier) {
             $carrier->setGroups($groupsIds);
         }
@@ -697,7 +700,8 @@ class Swastarkencl extends CarrierModule
 
     public function hookBackOfficeHeader($params)
     {
-        if (in_array($this->context->controller->controller_name, ['AdminModules'])
+        if (
+            in_array($this->context->controller->controller_name, ['AdminModules'])
             && Tools::getValue('configure') == $this->name
         ) {
             $this->context->controller->addCSS($this->getPathUri() . '/views/css/swastarkencl-backoffice.css', 'all');
@@ -820,7 +824,7 @@ class Swastarkencl extends CarrierModule
         if (!empty($issue->latitud) && !empty($issue->longitud)) {
             $issue->coordinate = $issue->latitud . ', ' . $issue->longitud;
         }
-        
+
         $this->context->smarty->assign([
             'swastarkencl_emision' => $issue,
             'swastarkencl_tracking' => $tracking,
@@ -916,7 +920,7 @@ class Swastarkencl extends CarrierModule
         if (!empty($issue->latitud) && !empty($issue->longitud)) {
             $issue->coordinate = $issue->latitud . ', ' . $issue->longitud;
         }
-        
+
         $this->changeAgencyDLSCodeByItsName($issue);
 
         if (isset($tracking->issuer_rut)) {
@@ -938,8 +942,7 @@ class Swastarkencl extends CarrierModule
             'swastarkencl_tracking' => $tracking,
             'swastarkencl_sender' => Configuration::get('PS_SHOP_NAME'),
             'swastarkencl_sender_phone' => Configuration::get('PS_SHOP_PHONE'),
-            'swastarkencl_ps_logo' => (
-                Tools::getShopDomainSsl(true) . __PS_BASE_URI__ . '/img/' . Configuration::get('PS_LOGO')
+            'swastarkencl_ps_logo' => (Tools::getShopDomainSsl(true) . __PS_BASE_URI__ . '/img/' . Configuration::get('PS_LOGO')
             ),
             'swastarkencl_recipient_name' => $customer->firstname . ' ' . $customer->lastname,
             'swastarkencl_recipient_phone' => (!empty($address->phone) ? $address->phone : $address->phone_mobile),
@@ -1031,7 +1034,7 @@ class Swastarkencl extends CarrierModule
         if (!$this->active) {
             return;
         }
-        
+
         if (Configuration::get('SWASTARKENCL_ORDER_STATE') != $params['newOrderStatus']->id) {
             return;
         }
@@ -1066,7 +1069,7 @@ class Swastarkencl extends CarrierModule
         if (!in_array($order->id_carrier, json_decode(Configuration::get('SWASTARKENCL_CARRIER_IDS'), true))) {
             return;
         }
-        
+
         $address = new Address($order->id_address_delivery);
         $customer = new Customer($order->id_customer);
         $destinationState = SwastarkenclState::getInstanceById(
@@ -1189,8 +1192,8 @@ class Swastarkencl extends CarrierModule
         if ($width <= 0) {
             return;
         }
-        
-        $height = sqrt(($volume/$width)*2/3);
+
+        $height = sqrt(($volume / $width) * 2 / 3);
 
         if ($height <= 0) {
             return;
@@ -1198,7 +1201,7 @@ class Swastarkencl extends CarrierModule
 
         if (!$onlyOneProduct) {
             $width = max($dimensions);
-            $height = sqrt(($volume/$width)*2/3);
+            $height = sqrt(($volume / $width) * 2 / 3);
             $depth = $volume / $width / $height;
         } else {
             $width = $dimensions[0];
@@ -1316,10 +1319,9 @@ class Swastarkencl extends CarrierModule
         }
 
         $orderDescription = implode(', ', $productNamesAsDescription);
-        $documentDescription = (
-            Tools::strlen($orderDescription) > 200
-                ? Tools::substr($orderDescription, 0, 197) . '...'
-                : $orderDescription
+        $documentDescription = (Tools::strlen($orderDescription) > 200
+            ? Tools::substr($orderDescription, 0, 197) . '...'
+            : $orderDescription
         );
         $data = [];
         $data = [
@@ -1341,10 +1343,9 @@ class Swastarkencl extends CarrierModule
                 "codigo_dls" => (int) SwastarkenclDeliveryType::getDLSByType($swastarkenclCarrier->delivery),
             ],
             "tipo_pago" => [
-                "codigo_dls" => (int) (
-                    $swastarkenclCarrier->payment_type != self::PAY_ON_ARRIVAL
-                        ? self::PAY_WITH_CHECKING_ACCOUNT
-                        : self::PAY_ON_ARRIVAL
+                "codigo_dls" => (int) ($swastarkenclCarrier->payment_type != self::PAY_ON_ARRIVAL
+                    ? self::PAY_WITH_CHECKING_ACCOUNT
+                    : self::PAY_ON_ARRIVAL
                 ),
             ],
             "tipo_servicio" => [
@@ -1353,8 +1354,7 @@ class Swastarkencl extends CarrierModule
             "encargos" => [
                 [
                     "descripcion" => $documentDescription,
-                    "tipo_encargo" => (
-                        $volume <= 2250 && $weight <= 0.3 ? 'SOBRE' : 'BULTO'
+                    "tipo_encargo" => ($volume <= 2250 && $weight <= 0.3 ? 'SOBRE' : 'BULTO'
                     ),
                     "kilos" => (float) number_format($weight, 2),
                     "alto" => (float) number_format($height, 2),
@@ -1381,14 +1381,16 @@ class Swastarkencl extends CarrierModule
             ];
         }
 
-        if (Configuration::get('SWASTARKENCL_CHECKING_ACCOUNT_SELECTED')
+        if (
+            Configuration::get('SWASTARKENCL_CHECKING_ACCOUNT_SELECTED')
             && $swastarkenclCarrier->payment_type != self::PAY_ON_ARRIVAL
         ) {
             $ctacte = explode('-', Configuration::get('SWASTARKENCL_CHECKING_ACCOUNT_SELECTED'));
             $data['cuenta_corriente'] = $ctacte[0];
         }
 
-        if (Configuration::get('SWASTARKENCL_CENTER_COST_SELECTED')
+        if (
+            Configuration::get('SWASTARKENCL_CENTER_COST_SELECTED')
             && $swastarkenclCarrier->payment_type != self::PAY_ON_ARRIVAL
         ) {
             $data['centro_costo'] = Configuration::get('SWASTARKENCL_CENTER_COST_SELECTED');
@@ -1586,7 +1588,7 @@ class Swastarkencl extends CarrierModule
         $dimensions = [];
         $onlyOneProduct = true;
         $productIds = [];
-        
+
         $cartProducts = $this->context->cart->getProducts();
         if (count($cartProducts) == 0) {
             return;
@@ -1614,8 +1616,8 @@ class Swastarkencl extends CarrierModule
         if ($width <= 0) {
             return;
         }
-        
-        $height = sqrt(($volume/$width)*2/3);
+
+        $height = sqrt(($volume / $width) * 2 / 3);
 
         if ($height <= 0) {
             return;
@@ -1625,7 +1627,7 @@ class Swastarkencl extends CarrierModule
 
         if (!$onlyOneProduct) {
             $width = max($dimensions);
-            $height = sqrt(($volume/$width)*2/3);
+            $height = sqrt(($volume / $width) * 2 / 3);
             $depth = $volume / $width / $height;
         } else {
             $width = $dimensions[0];
@@ -1730,9 +1732,25 @@ class Swastarkencl extends CarrierModule
         $this->hookActionCartUpdateQuantityBefore();
     }
 
+    public function hookActionBuildMailLayoutVariables(array $hookParams)
+    {
+        if (!isset($hookParams['mailLayout'])) {
+            return;
+        }
+
+        /** @var LayoutInterface $mailLayout */
+        $mailLayout = $hookParams['mailLayout'];
+        if ($mailLayout->getModuleName() != $this->name || $mailLayout->getName() != 'customizable_modern_layout') {
+            return;
+        }
+
+        $hookParams['mailLayoutVariables']['customMessage'] = 'My custom message';
+    }
+
     public function getOrderShippingCost($params, $shipping_cost)
     {
-        if (Validate::isLoadedObject($this->context->customer)
+        if (
+            Validate::isLoadedObject($this->context->customer)
             && (int) SwastarkenclCustomersAgency::getStateIdByCustomer($this->context->customer->id) <= 0
         ) {
             return false;
@@ -1757,7 +1775,8 @@ class Swastarkencl extends CarrierModule
         }
 
         foreach ($shippingOptionsCosts['alternativas'] as $alternative) {
-            if ($this->changeTypeValueBasedOnCarriers($alternative['servicio']) == $swastarkenclCarrier->service
+            if (
+                $this->changeTypeValueBasedOnCarriers($alternative['servicio']) == $swastarkenclCarrier->service
                 && $this->changeTypeValueBasedOnCarriers($alternative['entrega']) == $swastarkenclCarrier->delivery
                 && $alternative['codigo_tipo_pago'] == $swastarkenclCarrier->payment_type
             ) {
