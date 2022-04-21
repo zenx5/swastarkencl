@@ -1740,7 +1740,7 @@ class Swastarkencl extends CarrierModule
 
         /** @var LayoutInterface $mailLayout */
         $mailLayout = $hookParams['mailLayout'];
-        if ($mailLayout->getModuleName() != $this->name || $mailLayout->getName() != 'customizable_modern_layout') {
+        if ($mailLayout->getModuleName() != $this->name || $mailLayout->getName() != 'preparation') {
             return;
         }
 
