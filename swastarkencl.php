@@ -118,7 +118,7 @@ class Swastarkencl extends CarrierModule
             && $this->registerHook('actionCartSave')
             && $this->registerHook('actionBeforeCartUpdateQty')
             && $this->registerHook('actionCartUpdateQuantityBefore')
-            && $this->registerHook('actionGetMailLayoutTransformations')
+            && $this->registerHook('actionBuildMailLayoutVariables')
         );
     }
 
