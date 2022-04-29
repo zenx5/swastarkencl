@@ -119,6 +119,7 @@ class Swastarkencl extends CarrierModule
             && $this->registerHook('actionBeforeCartUpdateQty')
             && $this->registerHook('actionCartUpdateQuantityBefore')
             && $this->registerHook('actionListMailThemes')
+            && $this->registerHook('actionEmailSendBefore')
         );
     }
 
@@ -234,6 +235,9 @@ class Swastarkencl extends CarrierModule
 
     public function getContent()
     {
+        $this->registerHook('actionListMailThemes');
+        $this->registerHook('actionEmailSendBefore');
+
         $this->context->smarty->registerPlugin('modifier', 'starken_add_dv', [$this, 'addRutVerificationDigit']);
 
         if (Tools::isSubmit('SWASTARKENCL_GENERAL_SETTINGS')) {
@@ -1732,6 +1736,7 @@ class Swastarkencl extends CarrierModule
         $this->hookActionCartUpdateQuantityBefore();
     }
 
+
     /**
      * @param array $hookParams
      */
@@ -1743,25 +1748,43 @@ class Swastarkencl extends CarrierModule
 
         /** @var ThemeCollectionInterface $themes */
         $themes = $hookParams['mailThemes'];
-        $theme = $themes->getByName('modern');
-        if (!$theme) {
+        if (!$themes) {
             return;
         }
 
-        // First parameter is the layout name, second one is the module name (empty value matches the core layouts)
-        $orderConfLayout = $theme->getLayouts()->getLayout('preparation', '');
-        if (null === $orderConfLayout) {
-            return;
+        foreach ($themes as $theme) {
+            $layout = $theme->getLayouts()->getLayout('preparation', '');
+            $index = $theme->getLayouts()->indexOf($layout);
+            $theme->getLayouts()->offsetSet($index, new \PrestaShop\PrestaShop\Core\MailTemplate\Layout\Layout(
+                $layout->getName(),
+                __DIR__ . '/mails/layouts/preparation.html.twig',
+                ''
+            ));
         }
+    }
 
-        //The layout collection extends from ArrayCollection so it has more feature than it seems..
-        //It allows to REPLACE the existing layout easily
-        $orderIndex = $theme->getLayouts()->indexOf($orderConfLayout);
-        $theme->getLayouts()->offsetSet($orderIndex, new Layout(
-            $orderConfLayout->getName(),
-            __DIR__ . '/mails/layouts/preparation.html.twig',
-            ''
-        ));
+
+    public function hookActionEmailSendBefore($params)
+    {
+        if ($params['template'] == 'preparation') {
+            /*
+                content of $vars:
+                {
+                    "{lastname}":"Martinez",
+                    "{firstname}":"Octavio",
+                    "{id_order}":"12",
+                    "{order_name}":"QLYQDMSPD",
+                    "{followup}":"",
+                    "{shipping_number}":"",
+                    "{total_paid}":"\u20ac23.14"
+                }
+            */
+            $vars =  &$params['templateVars'];
+            $emision = new SwastarkenclEmision(SwastarkenclEmision::getIdByOrder($vars['{id_order}']));
+
+
+            $vars['{order_trans}'] = $vars['{id_order}'] . " >> " . $emision->id . " | " . $emision->id_order . " | " . $emision->id_emision . " | " . $emision->orden_flete;
+        }
     }
 
     public function getOrderShippingCost($params, $shipping_cost)
