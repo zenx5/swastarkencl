@@ -1043,6 +1043,7 @@ class Swastarkencl extends CarrierModule
             return;
         }
 
+
         $issueId = SwastarkenclEmision::getIdByOrder($params['id_order']);
         if ($issueId > 0) {
             $this->addLog(
@@ -1466,6 +1467,7 @@ class Swastarkencl extends CarrierModule
             $issue->observacion = $curl->response->observacion;
             $issue->retry = $curl->response->retry;
             $issue->updated_at = $curl->response->updated_at;
+
             $issue->save();
 
             $this->addLog(
@@ -1783,7 +1785,7 @@ class Swastarkencl extends CarrierModule
             $emision = new SwastarkenclEmision(SwastarkenclEmision::getIdByOrder($vars['{id_order}']));
 
 
-            $vars['{order_trans}'] = $vars['{id_order}'] . " >> " . $emision->id . " | " . $emision->id_order . " | " . $emision->id_emision . " | " . $emision->orden_flete;
+            $vars['{order_trans}'] = $emision->id_emision;
         }
     }
 
