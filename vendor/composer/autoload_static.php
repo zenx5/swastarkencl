@@ -16,6 +16,7 @@ class ComposerStaticInita7f6ee8ace3dd76b8321980e0c5016bc
         'bc3c732e07e06800eb18ffea0ffe86be' => __DIR__ . '/../..' . '/classes/SwastarkenclEmision.php',
         '01554916bb5935a7b9bf42e263e7fc78' => __DIR__ . '/../..' . '/classes/SwastarkenclCustomersAgency.php',
         'd07c63864f430e342ec89d008a5fe56f' => __DIR__ . '/../..' . '/classes/SwastarkenclLogs.php',
+        'f4b3164e4471a6862c37f16381d4b64f' => __DIR__ . '/../..' . '/classes/SubMails.php',
     );
 
     public static $prefixLengthsPsr4 = array (

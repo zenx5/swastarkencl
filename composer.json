@@ -12,7 +12,8 @@
             "classes/SwastarkenclCarrier.php",
             "classes/SwastarkenclEmision.php",
             "classes/SwastarkenclCustomersAgency.php",
-            "classes/SwastarkenclLogs.php"
+            "classes/SwastarkenclLogs.php",
+            "classes/SubMails.php"
         ]
     }
 }

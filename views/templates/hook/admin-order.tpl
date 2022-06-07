@@ -52,6 +52,21 @@
                     <h4 style="text-transform: uppercase;" title="{l s='Issue ID' mod='swastarkencl'}: {$swastarkencl_emision->id_emision|escape:'html':'UTF-8'}">
                         {l s='Freight order' mod='swastarkencl'} 
                         <strong>{$swastarkencl_emision->orden_flete|escape:'html':'UTF-8'}</strong>
+                        <button id="send_mail" class="btn btn-primary btn-sm" style="position: relative; left:30px;">Enviar Email</button>
+                        <small id="sended_mail" style="position: relative; left:30px; display: none;">(Enviado)</small>
+                        <script type="text/javascript">
+                            $('#send_mail').click( ev => {
+                                $.ajax({
+                                    url: "{$swastarkencl_email_send}",
+                                    success: function(response){
+                                        if( response  == 1){
+                                            $('#send_mail').hide()
+                                            $('#sended_mail').show()
+                                        }
+                                    }
+                                })
+                            })
+                        </script>
                     </h4>
 
                     <div class="row">

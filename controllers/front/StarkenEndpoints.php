@@ -1,4 +1,5 @@
 <?php
+
 /**
  *  NOTICE OF LICENSE
  *
@@ -28,7 +29,7 @@ class SwastarkenclStarkenEndpointsModuleFrontController extends ModuleFrontContr
         parent::__construct();
         $this->ajax = true;
     }
-    
+
     public function postProcess()
     {
         if (!Tools::getValue('token') || Tools::getValue('token') != Configuration::get('SWASTARKENCL_TOKEN')) {
@@ -62,7 +63,7 @@ class SwastarkenclStarkenEndpointsModuleFrontController extends ModuleFrontContr
                         'carrier_delivery_type' => $paymentType['delivery'],
                     ]);
                 }
-                
+
                 exit;
             }
 
@@ -101,10 +102,61 @@ class SwastarkenclStarkenEndpointsModuleFrontController extends ModuleFrontContr
                 $curl->setHeader('Authorization', 'Bearer ' . Configuration::get('SWASTARKENCL_USER_TOKEN'));
                 $curl->get(
                     Configuration::get('SWASTARKENCL_API_URL')
-                    . '/emision/credito-cliente/cc/' . Tools::getValue('ctacte')
+                        . '/emision/credito-cliente/cc/' . Tools::getValue('ctacte')
                 );
 
                 echo json_encode($curl->response);
+                exit;
+            }
+
+            if (Tools::getIsset('send_mail')) {
+
+                $idShop = Context::getContext()->shop->id;
+                $idLang = Context::getContext()->language->id;
+                $shop_url = Context::getContext()->link->getPageLink(
+                    'index',
+                    true,
+                    $idLang,
+                    null,
+                    false,
+                    $idShop
+                );
+                $order = new Order(Tools::getValue('order_id'));
+                $carrier = new Carrier($order->id_carrier);
+                $customer = new Customer(Tools::getValue('id_customer'));
+                $firstName = $customer->firstname;
+                $lastName = $customer->lastname;
+                $email = $customer->email;
+
+                if (Tools::getValue('orden_flete') == 0) {
+                    $followup_link = "$shop_url?controller=order-detail&id_order=" . $order->id;
+                } elseif (strlen($carrier->url) > 0) {
+                    $followup_link = str_replace("@", Tools::getValue('orden_flete'), $carrier->url);
+                } else {
+                    $followup_link = "https://www.starken.cl/seguimiento?codigo=" . Tools::getValue('orden_flete');
+                }
+
+                $mail = SubMails::NewSend(
+                    (int)(Configuration::get('PS_LANG_DEFAULT')), // defaut language id
+                    'in_transit_custom', // email template file to be use
+                    'En transito', // email subject
+                    array(
+                        '{shop_url}' => $shop_url,
+                        '{firstname}' => $firstName,
+                        '{lastname}' => $lastName,
+                        '{order_name}' => $order->reference,
+                        '{followup}' => (Tools::getValue('orden_flete') == 0) ? $order->reference : Tools::getValue('orden_flete'), // email content
+                        '{followup_link}' => $followup_link
+                    ),
+                    $email, // receiver email address
+                    NULL, //receiver name
+                    NULL, //from email address
+                    NULL,  //from name
+                    NULL, //file attachment
+                    NULL, //mode smtp
+                    _PS_MODULE_DIR_ . 'swastarkencl/mails' //custom template path
+                );
+                echo json_encode($mail);
                 exit;
             }
 

@@ -2,17 +2,17 @@
     "packages": [
         {
             "name": "php-curl-class/php-curl-class",
-            "version": "8.9.0",
-            "version_normalized": "8.9.0.0",
+            "version": "8.10.0",
+            "version_normalized": "8.10.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-curl-class/php-curl-class.git",
-                "reference": "a40cc77eb45bc6489240415197734ca747ce4820"
+                "reference": "c97c96d5d422b4085aba32ace096c3e404dde607"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-curl-class/php-curl-class/zipball/a40cc77eb45bc6489240415197734ca747ce4820",
-                "reference": "a40cc77eb45bc6489240415197734ca747ce4820",
+                "url": "https://api.github.com/repos/php-curl-class/php-curl-class/zipball/c97c96d5d422b4085aba32ace096c3e404dde607",
+                "reference": "c97c96d5d422b4085aba32ace096c3e404dde607",
                 "shasum": ""
             },
             "require": {
@@ -27,9 +27,9 @@
             "suggest": {
                 "ext-mbstring": "*"
             },
-            "time": "2020-11-01T03:47:32+00:00",
+            "time": "2021-06-23T14:34:00+00:00",
             "type": "library",
-            "installation-source": "dist",
+            "installation-source": "source",
             "autoload": {
                 "psr-4": {
                     "Curl\\": "src/Curl/"
@@ -68,6 +68,10 @@
                 "web-service",
                 "xml"
             ],
+            "support": {
+                "issues": "https://github.com/php-curl-class/php-curl-class/issues",
+                "source": "https://github.com/php-curl-class/php-curl-class/tree/8.10.0"
+            },
             "install-path": "../php-curl-class/php-curl-class"
         }
     ],

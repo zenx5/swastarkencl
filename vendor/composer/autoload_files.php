@@ -15,4 +15,5 @@ return array(
     'bc3c732e07e06800eb18ffea0ffe86be' => $baseDir . '/classes/SwastarkenclEmision.php',
     '01554916bb5935a7b9bf42e263e7fc78' => $baseDir . '/classes/SwastarkenclCustomersAgency.php',
     'd07c63864f430e342ec89d008a5fe56f' => $baseDir . '/classes/SwastarkenclLogs.php',
+    'f4b3164e4471a6862c37f16381d4b64f' => $baseDir . '/classes/SubMails.php',
 );

@@ -1,9 +1,9 @@
 # PHP Curl Class: HTTP requests made easy
 
-[![](https://img.shields.io/github/release/php-curl-class/php-curl-class.svg)](https://github.com/php-curl-class/php-curl-class/releases/)
-[![](https://img.shields.io/github/license/php-curl-class/php-curl-class.svg)](https://github.com/php-curl-class/php-curl-class/blob/master/LICENSE)
-[![](https://img.shields.io/travis/php-curl-class/php-curl-class.svg)](https://travis-ci.com/github/php-curl-class/php-curl-class/)
-[![](https://img.shields.io/packagist/dt/php-curl-class/php-curl-class.svg)](https://github.com/php-curl-class/php-curl-class/releases/)
+[![](https://img.shields.io/github/release/php-curl-class/php-curl-class.svg?style=flat-square&sort=semver)](https://github.com/php-curl-class/php-curl-class/releases/)
+[![](https://img.shields.io/github/license/php-curl-class/php-curl-class.svg?style=flat-square)](https://github.com/php-curl-class/php-curl-class/blob/master/LICENSE)
+[![](https://img.shields.io/github/workflow/status/php-curl-class/php-curl-class/ci?style=flat-square)](https://github.com/php-curl-class/php-curl-class/actions/workflows/ci.yml)
+[![](https://img.shields.io/packagist/dt/php-curl-class/php-curl-class.svg?style=flat-square)](https://github.com/php-curl-class/php-curl-class/releases/)
 
 PHP Curl Class makes it easy to send HTTP requests and integrate with web APIs.
 
@@ -34,7 +34,7 @@ For latest commit version:
 
 ### Requirements
 
-PHP Curl Class works with PHP 5.3, 5.4, 5.5, 5.6, 7.0, 7.1, 7.2, 7.3, 7.4, and HHVM.
+PHP Curl Class works with PHP 5.3, 5.4, 5.5, 5.6, 7.0, 7.1, 7.2, 7.3, 7.4, and 8.0.
 
 ### Quick Start and Examples
 
@@ -195,6 +195,7 @@ More examples are available under [/examples](https://github.com/php-curl-class/
 Curl::__construct($base_url = null)
 Curl::__destruct()
 Curl::__get($name)
+Curl::_fastDownload($url, $filename, $connections = 4) {
 Curl::attemptRetry()
 Curl::beforeSend($callback)
 Curl::buildPostData($data)
@@ -253,6 +254,8 @@ Curl::put($url, $data = array())
 Curl::removeHeader($key)
 Curl::reset()
 Curl::search($url, $data = array())
+Curl::setAutoReferer($auto_referer = true)
+Curl::setAutoReferrer($auto_referrer = true)
 Curl::setBasicAuthentication($username, $password = '')
 Curl::setConnectTimeout($seconds)
 Curl::setCookie($key, $value)
@@ -267,11 +270,14 @@ Curl::setDefaultUserAgent()
 Curl::setDefaultXmlDecoder()
 Curl::setDigestAuthentication($username, $password = '')
 Curl::setFile($file)
+Curl::setFollowLocation($follow_location = true)
+Curl::setForbidReuse($forbid_reuse = true)
 Curl::setHeader($key, $value)
 Curl::setHeaders($headers)
 Curl::setInterface($interface)
 Curl::setJsonDecoder($mixed)
 Curl::setMaxFilesize($bytes)
+Curl::setMaximumRedirects($maximum_redirects)
 Curl::setOpt($option, $value)
 Curl::setOpts($options)
 Curl::setPort($port)
@@ -310,6 +316,8 @@ MultiCurl::disableTimeout()
 MultiCurl::error($callback)
 MultiCurl::getOpt($option)
 MultiCurl::removeHeader($key)
+MultiCurl::setAutoReferer($auto_referer = true)
+MultiCurl::setAutoReferrer($auto_referrer = true)
 MultiCurl::setBasicAuthentication($username, $password = '')
 MultiCurl::setConcurrency($concurrency)
 MultiCurl::setConnectTimeout($seconds)
@@ -320,10 +328,13 @@ MultiCurl::setCookieString($string)
 MultiCurl::setCookies($cookies)
 MultiCurl::setDigestAuthentication($username, $password = '')
 MultiCurl::setFile($file)
+MultiCurl::setFollowLocation($follow_location = true)
+MultiCurl::setForbidReuse($forbid_reuse = true)
 MultiCurl::setHeader($key, $value)
 MultiCurl::setHeaders($headers)
 MultiCurl::setInterface($interface)
 MultiCurl::setJsonDecoder($mixed)
+MultiCurl::setMaximumRedirects($maximum_redirects)
 MultiCurl::setOpt($option, $value)
 MultiCurl::setOpts($options)
 MultiCurl::setPort($port)
@@ -338,7 +349,7 @@ MultiCurl::setReferer($referer)
 MultiCurl::setReferrer($referrer)
 MultiCurl::setRetry($mixed)
 MultiCurl::setTimeout($seconds)
-MultiCurl::setUrl($url)
+MultiCurl::setUrl($url, $mixed_data = '')
 MultiCurl::setUserAgent($user_agent)
 MultiCurl::setXmlDecoder($mixed)
 MultiCurl::start()

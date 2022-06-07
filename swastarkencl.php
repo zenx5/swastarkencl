@@ -66,18 +66,6 @@ class Swastarkencl extends CarrierModule
         if (!$this->validateDependencies()) {
             return false;
         }
-        $langs = Language::getLanguages();
-        foreach ($langs as $lang) {
-            Language::installEmailsLanguagePack($lang);
-        }
-
-        //Cache::flush();
-
-        Tools::clearSmartyCache();
-        Tools::clearXMLCache();
-        Media::clearCache();
-        Tools::generateIndex();
-        Language::loadLanguages();
 
         Configuration::updateValue(
             'SWASTARKENCL_TOKEN',
@@ -132,8 +120,6 @@ class Swastarkencl extends CarrierModule
             && $this->registerHook('actionCartSave')
             && $this->registerHook('actionBeforeCartUpdateQty')
             && $this->registerHook('actionCartUpdateQuantityBefore')
-            && $this->registerHook('actionListMailThemes')
-            && $this->registerHook('actionEmailSendBefore')
         );
     }
 
@@ -578,7 +564,7 @@ class Swastarkencl extends CarrierModule
             $carrier->range_behavior = 0;
             $carrier->external_module_name = $this->name;
             $carrier->shipping_method = 2;
-            // $carrier->url = '';
+            $carrier->url = 'https://www.starken.cl/seguimiento?codigo=@';
             $langs = Language::getLanguages();
             foreach ($langs as $lang) {
                 $carrier->delay[$lang['id_lang']] = $this->description;
@@ -953,6 +939,17 @@ class Swastarkencl extends CarrierModule
         }
 
         $this->context->smarty->assign([
+            'swastarkencl_email_send' => $this->context->link->getModuleLink(
+                $this->name,
+                'StarkenEndpoints',
+                [
+                    'send_mail' => true,
+                    'orden_flete' => $issue->orden_flete,
+                    'order_id' => $order->id,
+                    'id_customer' => $customer->id,
+                    'token' => Configuration::get('SWASTARKENCL_TOKEN')
+                ]
+            ),
             'swastarkencl_total_shipping' => (float)$order->total_shipping,
             'swastarkencl_emision' => $issue,
             'swastarkencl_tracking' => $tracking,
@@ -1045,7 +1042,7 @@ class Swastarkencl extends CarrierModule
         $this->hookUpdateCarrier($params);
     }
 
-    public function sendMailInTransit($idCustomer, $orderName, $idFlete)
+    public function sendMailInTransit($order_id, $idFlete)
     {
         $idShop = Context::getContext()->shop->id;
         $idLang = Context::getContext()->language->id;
@@ -1057,28 +1054,40 @@ class Swastarkencl extends CarrierModule
             false,
             $idShop
         );
-        $customer = new Customer($idCustomer);
+        $order = new Order($order_id);
+        $carrier = new Carrier($order->id_carrier);
+        $customer = new Customer($order->id_customer);
         $firstName = $customer->firstname;
         $lastName = $customer->lastname;
+        $email = $customer->email;
 
-        $mail = Mail::Send(
+        if ($idFlete == 0) {
+            $followup_link = "$shop_url?controller=order-detail&id_order=$order_id";
+        } elseif (strlen($carrier->url) > 0) {
+            $followup_link = str_replace("@", $idFlete, $carrier->url);
+        } else {
+            $followup_link = "https://www.starken.cl/seguimiento?codigo=$idFlete";
+        }
+
+        $mail = SubMails::NewSend(
             (int)(Configuration::get('PS_LANG_DEFAULT')), // defaut language id
-            'in_transit', // email template file to be use
+            'in_transit_custom', // email template file to be use
             'En transito', // email subject
             array(
                 '{shop_url}' => $shop_url,
                 '{firstname}' => $firstName,
                 '{lastname}' => $lastName,
-                '{order_name}' => $orderName,
-                '{followup}' => $idFlete // email content
+                '{order_name}' => $order->reference,
+                '{followup}' => ($idFlete == 0) ? "(ver en tienda)" : $idFlete, // email content
+                '{followup_link}' => $followup_link
             ),
-            Configuration::get('PS_SHOP_EMAIL'), // receiver email address
+            $email, // receiver email address
             NULL, //receiver name
             NULL, //from email address
             NULL,  //from name
             NULL, //file attachment
             NULL, //mode smtp
-            _PS_MODULE_DIR_ . 'swastarkencl/mails' //custom template path
+            _PS_MODULE_DIR_ . $this->name . '/mails/' //custom template path
         );
     }
 
@@ -1099,8 +1108,7 @@ class Swastarkencl extends CarrierModule
         //Se verifica que la orden no tenga asignado otro starken issue
         if ($issueId > 0) {
             $issue = new SwastarkenclEmision($issueId);
-            $order = new Order($params['id_order']);
-            $this->sendMailInTransit($order->id_customer, $order->reference, $issue->orden_flete);
+            $this->sendMailInTransit($params['id_order'], $issue->orden_flete);
             $this->addLog(
                 json_encode([
                     'message' => $this->l('This order is in use in another Starken Issue')
@@ -1224,8 +1232,6 @@ class Swastarkencl extends CarrierModule
             $cartProducts = $cart->getProducts();
         }
 
-
-
         $weight = 0.0;
         $height = 0.0;
         $width = 0.0;
@@ -1308,6 +1314,7 @@ class Swastarkencl extends CarrierModule
             $destinationState->id,
             $customer->id
         );
+
 
         if ($codigoAgenciaOrigen <= 0 && $codigoAgenciaDestino <= 0) {
             $curl = new Curl\Curl();
@@ -1531,8 +1538,7 @@ class Swastarkencl extends CarrierModule
 
             $issue->save();
 
-
-            $this->sendMailInTransit($order->id_customer, $order->reference, $issue->orden_flete);
+            $this->sendMailInTransit($params['id_order'], $issue->orden_flete);
 
             $this->addLog(
                 json_encode([
@@ -1548,6 +1554,7 @@ class Swastarkencl extends CarrierModule
                 null
             );
         } catch (PrestaShopException $e) {
+
             $this->addLog(
                 json_encode([
                     'message' => $e->getMessage(),
@@ -1797,46 +1804,6 @@ class Swastarkencl extends CarrierModule
     public function hookActionBeforeCartUpdateQty()
     {
         $this->hookActionCartUpdateQuantityBefore();
-    }
-
-
-    /**
-     * @param array $hookParams
-     */
-    public function hookActionListMailThemes(array $hookParams)
-    {
-        if (!isset($hookParams['mailThemes'])) {
-            return;
-        }
-
-        /** @var ThemeCollectionInterface $themes */
-        $themes = $hookParams['mailThemes'];
-        if (!$themes) {
-            return;
-        }
-
-        foreach ($themes as $theme) {
-            $layout = $theme->getLayouts()->getLayout('preparation', '');
-            $index = $theme->getLayouts()->indexOf($layout);
-            $theme->getLayouts()->offsetSet($index, new \PrestaShop\PrestaShop\Core\MailTemplate\Layout\Layout(
-                $layout->getName(),
-                __DIR__ . '/mails/layouts/preparation.html.twig',
-                ''
-            ));
-        }
-    }
-
-
-    public function hookActionEmailSendBefore($params)
-    {
-        if ($params['template'] == 'preparation') {
-
-            $vars =  &$params['templateVars'];
-            $emision = new SwastarkenclEmision(SwastarkenclEmision::getIdByOrder($vars['{id_order}']));
-
-
-            $vars['{followup}'] = $emision->id_emision;
-        }
     }
 
     public function getOrderShippingCost($params, $shipping_cost)
